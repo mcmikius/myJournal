@@ -27,4 +27,49 @@ struct JournalRoutes: RouteCollection {
         print("Total Records: \(total)")
         return "\(total)"
     }
+    
+    func newEntry(_ req: Request) throws -> Future<HTTPStatus> {
+        let newID = UUID().uuidString
+        return try req.content.decode(Entry.self).map(to: HTTPStatus.self, { (entry) in
+            let newEntry = Entry(id: newID, title: entry.title, content: entry.content)
+            guard let result = self.journal.create(newEntry) else {
+                throw Abort(.badRequest)
+            }
+            print("Created: \(result)")
+            return .ok
+        })
+    }
+    
+    func getEntry(_ req: Request) throws -> Entry {
+        let index = try req.parameters.next(Int.self)
+        let res = req.response()
+        guard let entry = journal.read(index: index) else {
+            throw Abort(.badRequest)
+        }
+        print("Read: \(entry)")
+        try res.content.encode(entry, as: .formData)
+        return entry
+    }
+    
+    func editEntry(_ req: Request) throws -> Future<HTTPStatus> {
+        let index = try req.parameters.next(Int.self)
+        let newID = UUID().uuidString
+        return try req.content.decode(Entry.self).map(to: HTTPStatus.self) { entry in
+            let newEntry = Entry(id: newID, title: entry.title, content: entry.content)
+            guard let result = self.journal.update(index: index, entry: newEntry) else {
+                throw Abort(.badRequest)
+            }
+            print("Updated: \(result)")
+            return .ok
+        }
+    }
+    
+    func removeEntry(_ req: Request) throws -> HTTPStatus {
+        let index = try req.parameters.next(Int.self)
+        guard let result = self.journal.delete(index: index) else {
+            throw Abort(.badRequest)
+        }
+        print("Deleted: \(result)")
+        return .ok
+    }
 }
