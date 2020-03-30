@@ -1,6 +1,7 @@
 import Vapor
 
-struct Entry: Content {
+struct Entry: Content, Parameter {
+    
     var id: String?
     var title: String?
     var content: String?
@@ -9,6 +10,11 @@ struct Entry: Content {
         self.id = id
         self.title = title
         self.content = content
+    }
+    
+    // conforming to the Parameter protocol
+    static func resolveParameter(_ parameter: String, on container: Container) throws -> Entry {
+        return Entry(id: parameter)
     }
 }
 
