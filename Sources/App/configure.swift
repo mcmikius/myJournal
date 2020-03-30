@@ -1,11 +1,11 @@
-import FluentSQLite
+import PostgreSQL
 import Vapor
 import Leaf
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
     // Register providers first
-    try services.register(FluentSQLiteProvider())
+    try services.register(PostgreSQLProvider())
     // Register Leaf templating engine
     try services.register(LeafProvider())
 
@@ -26,16 +26,17 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         
 
     // Configure a SQLite database
-    let sqlite = try SQLiteDatabase(storage: .memory)
+    let config = PostgreSQLDatabaseConfig(hostname: "localhost", username: "admin", database: "myJournal", password: "password")
+    let postgresql = try PostgreSQLDatabase(config: config)
 
     // Register the configured SQLite database to the database config.
     var databases = DatabasesConfig()
-    databases.add(database: sqlite, as: .sqlite)
+    databases.add(database: postgresql, as: .psql)
     services.register(databases)
 
     // Configure migrations
     var migrations = MigrationConfig()
-//    migrations.add(model: Todo.self, database: .sqlite)
+    migrations.add(model: JournalEntry.self, database: .psql)
     services.register(migrations)
     
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
