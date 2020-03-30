@@ -6,6 +6,7 @@
 //
 
 import Vapor
+import Leaf
 
 struct JournalRoutes: RouteCollection {
     
@@ -22,10 +23,11 @@ struct JournalRoutes: RouteCollection {
         entryRouter.delete(use: removeEntry)
     }
     
-    func getTotal(_ req: Request) -> String {
+    func getTotal(_ req: Request) throws -> Future<View> {
         let total = journal.total()
-        print("Total Records: \(total)")
-        return "\(total)"
+        let leaf = try req.make(LeafRenderer.self)
+        let context = ["count": total]
+        return leaf.render("main", context)
     }
     
     func newEntry(_ req: Request) throws -> Future<HTTPStatus> {
@@ -72,4 +74,6 @@ struct JournalRoutes: RouteCollection {
         print("Deleted: \(result)")
         return .ok
     }
+    
+    
 }
