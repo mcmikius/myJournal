@@ -8,6 +8,7 @@
 import Vapor
 
 final class JournalController {
+    
     var entries: Array<Entry> = Array()
     
     //: Get total number of entries

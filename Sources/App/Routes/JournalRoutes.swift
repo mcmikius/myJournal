@@ -12,7 +12,19 @@ struct JournalRoutes: RouteCollection {
     let journal = JournalController()
     
     func boot(router: Router) throws {
-        // to be implemented later
+        let topRouter = router.grouped("journal")
+        topRouter.get(use: getEntry)
+        topRouter.post(use: newEntry)
+        
+        let entryRouter = router.grouped("journal", Int.parameter)
+        entryRouter.get(use: getEntry)
+        entryRouter.put(use: editEntry)
+        entryRouter.delete(use: removeEntry)
     }
-    // Add route handlers here
+    
+    func getTotal(_ req: Request) -> String {
+        let total = journal.total()
+        print("Total Records: \(total)")
+        return "\(total)"
+    }
 }
