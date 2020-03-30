@@ -1,4 +1,4 @@
-import PostgreSQL
+import FluentPostgreSQL
 import Vapor
 import Leaf
 
@@ -26,8 +26,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         
 
     // Configure a SQLite database
-    let config = PostgreSQLDatabaseConfig(hostname: "localhost", username: "admin", database: "myJournal", password: "password")
-    let postgresql = try PostgreSQLDatabase(config: config)
+    let postgresql = PostgreSQLDatabase(config: PostgreSQLDatabaseConfig(hostname: "localhost", username: "admin", database: "myjournal"))
 
     // Register the configured SQLite database to the database config.
     var databases = DatabasesConfig()
@@ -36,7 +35,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     // Configure migrations
     var migrations = MigrationConfig()
-    migrations.add(model: JournalEntry.self, database: .psql)
+    migrations.add(model: JournalEntry.self, database: DatabaseIdentifier<PostgreSQLDatabase>.psql)
     services.register(migrations)
     
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)

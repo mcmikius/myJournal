@@ -9,6 +9,7 @@ import FluentPostgreSQL
 import Vapor
 
 final class JournalEntry: PostgreSQLModel {
+    typealias Database = PostgreSQLDatabase
     var id: Int?
     var title: String
     var content: String
