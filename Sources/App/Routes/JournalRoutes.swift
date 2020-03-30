@@ -10,6 +10,8 @@ import Leaf
 
 struct JournalRoutes: RouteCollection {
     
+    let title = "My Journal"
+    let author = "Angus"
     let journal = JournalController()
     
     func boot(router: Router) throws {
@@ -25,8 +27,9 @@ struct JournalRoutes: RouteCollection {
     
     func getTotal(_ req: Request) throws -> Future<View> {
         let total = journal.total()
+        let count = "\(total)"
         let leaf = try req.make(LeafRenderer.self)
-        let context = ["count": total]
+        let context = ["title": title, "author": author, "count": count]
         return leaf.render("main", context)
     }
     
