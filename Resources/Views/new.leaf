@@ -21,7 +21,7 @@
             <div class="col-md-12">
                 <form action="/journal/new/" method="post">
                     <fieldset class="form-group">
-                        <input name="id" type="hidden" value="-1" />
+                        <input name="id" type="hidden"/>
                         <input type="text" class="form-control" name="title" placeholder="Enter title here">
                     </fieldset>
                     

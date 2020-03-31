@@ -20,14 +20,13 @@ struct JournalRoutes: RouteCollection {
         let title: String
         let author: String
         let count: String
-        let entries: [Entry]
+        let entries: [JournalEntry]
     }
     
     struct EntryContext : Encodable {
         let title: String
         let author: String
-        let index: Int
-        let entry: Entry
+        let entry: JournalEntry
     }
     
     func boot(router: Router) throws {
@@ -45,12 +44,11 @@ struct JournalRoutes: RouteCollection {
     }
     
     func getAll(_ req: Request) throws -> Future<View> {
-        let total = journal.total()
-        let entries : [Entry] = journal.readAll()
-        let count = "\(total)"
-        let leaf = try req.make(LeafRenderer.self)
-        let context = JournalContext(title: title, author: author, count: count, entries: entries)
-        return leaf.render("main", context)
+        return JournalEntry.query(on: req).all().flatMap(to: View.self) { (entries) in
+            let context = JournalContext(title: self.title, author: self.author, count: String(entries.count), entries: entries)
+            let leaf = try req.make(LeafRenderer.self)
+            return leaf.render("main", context)
+        }
     }
     
     func createEntry(_ req: Request) throws -> Future<View> {
@@ -60,42 +58,40 @@ struct JournalRoutes: RouteCollection {
     }
     
     func newEntry(_ req: Request) throws -> Future<Response> {
-        let newID = UUID().uuidString
-        return try req.content.decode(Entry.self).map(to: Response.self) { entry in
-            if let result = self.journal.create(Entry(id: newID, title: entry.title, content: entry.content)) {
-                print("Created: \(result)")
-            }
-            return req.redirect(to: self.mainPage)
-        }
+        return try req.content.decode(JournalEntry.self).flatMap { entry in
+            return entry.save(on: req)
+        }.transform(to: req.redirect(to: self.mainPage))
     }
     
     func getEntry(_ req: Request) throws -> Future<View> {
-        let index = try req.parameters.next(Int.self)
-        let leaf = try req.make(LeafRenderer.self)
-        var entry = Entry(id: "-1")
-        if let result = journal.read(index: index) {
-            entry = result
+        let id = try req.parameters.next(Int.self)
+        return JournalEntry.find(id, on: req).flatMap(to: View.self) { (entry) in
+            guard let entry = entry else { throw Abort(.notFound) }
+            let leaf = try req.make(LeafRenderer.self)
+            let context: EntryContext
+            context = EntryContext(title: self.title, author: self.author, entry: entry)
+            return leaf.render("entry", context)
         }
-        let context = EntryContext(title: title, author: author, index: index, entry: entry)
-        return leaf.render("entry", context)
     }
     
     func editEntry(_ req: Request) throws -> Future<Response> {
-        let index = try req.parameters.next(Int.self)
-        return try req.content.decode(Entry.self).map(to: Response.self) { entry in
-            if let result = self.journal.update(index: index, entry: Entry(id: entry.id!, title: entry.title, content: entry.content)) {
-                print("Updated: \(result)")
+        let id = try req.parameters.next(Int.self)
+        return try req.content.decode(JournalEntry.self).flatMap { updated in
+            return JournalEntry.find(id, on: req).flatMap(to: JournalEntry.self) { original in
+                guard let original = original else { throw Abort(.notFound) }
+                original.title = updated.title
+                original.content = updated.content
+                return original.save(on: req)
             }
-            return req.redirect(to: self.mainPage)
-        }
+        }.transform(to: req.redirect(to: self.mainPage))
     }
-
-    func removeEntry(_ req: Request) throws -> Response {
-        let index = try req.parameters.next(Int.self)
-        if let result = self.journal.delete(index: index) {
-            print("Deleted: \(result)")
+    
+    func removeEntry(_ req: Request) throws -> Future<Response> {
+        let id = try req.parameters.next(Int.self)
+        return JournalEntry.find(id, on: req).flatMap { entry in
+            guard let entry = entry else { throw Abort(.notFound) }
+            return entry.delete(on: req).transform(to: req.redirect(to: self.mainPage))
         }
-        return req.redirect(to: mainPage)
     }
     
 }
