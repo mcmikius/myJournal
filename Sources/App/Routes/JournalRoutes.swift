@@ -200,4 +200,11 @@ struct JournalRoutes: RouteCollection {
         }.transform(to: req.redirect(to: self.accountsPage))
     }
     
+    func removeAccount(_ req: Request) throws -> Future<Response> {
+        let id = try req.parameters.next(Int.self)
+        return Admin.find(id, on: req).flatMap { admin in
+            guard let admin = admin else { throw Abort(.notFound) }
+            return admin.delete(on: req).transform(to: req.redirect(to: self.accountsPage))
+        }
+    }
 }
