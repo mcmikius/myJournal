@@ -186,4 +186,18 @@ struct JournalRoutes: RouteCollection {
         }
     }
     
+    func addAccount(_ req: Request) throws -> Future<View> {
+        let leaf = try req.make(LeafRenderer.self)
+        let isAdmin = try req.isAuthenticated(Admin.self)
+        let context = CreateContext(isAdmin: isAdmin, title: self.title, author: self.author)
+        return leaf.render("add_account", context)
+    }
+    
+    func newAccount(_ req: Request) throws -> Future<Response> {
+        return try req.content.decode(Admin.self).flatMap(to: Admin.self) { admin in
+            admin.password = try BCrypt.hash(admin.password)
+            return admin.save(on: req)
+        }.transform(to: req.redirect(to: self.accountsPage))
+    }
+    
 }
