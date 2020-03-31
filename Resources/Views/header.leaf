@@ -13,7 +13,9 @@
                     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
                         <!-- Custom CSS -->
                         <link rel="stylesheet" href="/css/custom.css">
-                            </head>
+                            
+    </head>
+    
     <body>
         <!--wrapper start-->
         <div class="wrapper" id="wrapper">
@@ -31,10 +33,14 @@
                         <div class="collapse navbar-collapse" id="myNavbar">
                             <ul class="navbar-nav mr-auto">
                                 <li class="nav-item active">
-                                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                                    <a class="nav-link" href="/journal/all">Home <span class="sr-only">(current)</span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#">Admin</a>
+                                    #if(isAdmin == true) {
+                                    <a class="nav-link" href="/journal/logout">Logout</a>
+                                    } else {
+                                    <a class="nav-link" href="/journal/login?login">Admin</a>
+                                    }
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#">About</a>
