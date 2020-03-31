@@ -39,6 +39,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Configure migrations
     var migrations = MigrationConfig()
     migrations.add(model: JournalEntry.self, database: DatabaseIdentifier<PostgreSQLDatabase>.psql)
+    migrations.add(model: Admin.self, database: DatabaseIdentifier<PostgreSQLDatabase>.psql)
     services.register(migrations)
     
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)

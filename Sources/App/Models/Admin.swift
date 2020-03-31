@@ -10,6 +10,7 @@ import Vapor
 import Authentication
 
 final class Admin: PostgreSQLModel {
+    typealias Database = PostgreSQLDatabase
     var id: Int?
     var name: String
     var login: String
